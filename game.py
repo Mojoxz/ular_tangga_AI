@@ -121,7 +121,13 @@ class Game:
         self.dice = Dice(750, 300)
         
         self.font = pygame.font.SysFont('Arial', 24)
-        self.message = "Klik dadu untuk roll" if not self.current_player.is_computer else "Computer sedang berpikir..."
+        
+        # Set initial message based on player type
+        if self.current_player.is_computer:
+            self.message = "Computer sedang berpikir..."
+            self.current_player.set_move_time()
+        else:
+            self.message = "Klik dadu untuk roll"
         
         # Animation variables
         self.moving_animation = False
@@ -208,7 +214,7 @@ class Game:
         self.screen.blit(pos_surface, (x + 10, y + 35))
         
         # Player type
-        type_text = "Computer" if hasattr(player, 'is_computer') and player.is_computer else "Human"
+        type_text = "Computer" if player.is_computer else "Human"
         type_surface = pygame.font.SysFont('Arial', 14).render(type_text, True, text_color)
         self.screen.blit(type_surface, (x + 10, y + 55))
 
@@ -272,7 +278,7 @@ class Game:
                     if (self.dice.is_clicked(mouse_pos) and 
                         self.waiting_for_roll and 
                         not self.game_over and 
-                        not (hasattr(self.current_player, 'is_computer') and self.current_player.is_computer)):
+                        not self.current_player.is_computer):
                         self.roll_and_move()
         
         return None
@@ -291,11 +297,9 @@ class Game:
             self.move_player(dice_value)
         
         # Handle computer player
-        if (hasattr(self.current_player, 'is_computer') and 
-            self.current_player.is_computer and 
+        if (self.current_player.is_computer and 
             self.waiting_for_roll and 
             not self.game_over and
-            hasattr(self.current_player, 'should_computer_roll') and
             self.current_player.should_computer_roll()):
             self.roll_and_move()
 
@@ -325,10 +329,9 @@ class Game:
             self.switch_player()
             
             # Update message for next player
-            if hasattr(self.current_player, 'is_computer') and self.current_player.is_computer:
+            if self.current_player.is_computer:
                 self.message += " | Computer sedang berpikir..."
-                if hasattr(self.current_player, 'set_move_time'):
-                    self.current_player.set_move_time()
+                self.current_player.set_move_time()
             else:
                 self.message += " | Klik dadu untuk roll"
         
@@ -348,10 +351,9 @@ class Game:
         self.dice.value = 1
         self.waiting_for_roll = True
         
-        if hasattr(self.current_player, 'is_computer') and self.current_player.is_computer:
+        if self.current_player.is_computer:
             self.message = "Computer sedang berpikir..."
-            if hasattr(self.current_player, 'set_move_time'):
-                self.current_player.set_move_time()
+            self.current_player.set_move_time()
         else:
             self.message = "Klik dadu untuk roll"
 

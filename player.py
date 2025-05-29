@@ -1,13 +1,21 @@
 import pygame
+import time
+import random
 
 # Player Class
 class Player:
-    def __init__(self, name, color):
+    def __init__(self, name, color, is_computer=False):
         self.name = name
         self.color = color
         self.position = 1  # Start at square 1, not 0
         self.rect = pygame.Rect(0, 0, 30, 30)
         self.font = pygame.font.SysFont('Arial', 16)
+        self.is_computer = is_computer
+        
+        # Computer AI variables
+        if self.is_computer:
+            self.move_start_time = None
+            self.move_delay = 1.5  # Delay in seconds before computer moves
 
     def move(self, steps, board):
         """Move player and handle snakes and ladders"""
@@ -57,3 +65,17 @@ class Player:
         text = self.font.render(self.name, True, (255, 255, 255))
         text_rect = text.get_rect(center=(x, y - 25))
         screen.blit(text, text_rect)
+
+    # Computer AI methods
+    def set_move_time(self):
+        """Set the time when computer should make a move"""
+        if self.is_computer:
+            self.move_start_time = time.time()
+
+    def should_computer_roll(self):
+        """Check if computer should roll the dice"""
+        if not self.is_computer or self.move_start_time is None:
+            return False
+        
+        current_time = time.time()
+        return (current_time - self.move_start_time) >= self.move_delay
