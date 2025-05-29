@@ -1,5 +1,6 @@
 import pygame
 import sys
+from menu import Menu
 from game import Game
 
 # Initialize Pygame
@@ -7,17 +8,29 @@ pygame.init()
 
 # Game configuration
 WIDTH, HEIGHT = 900, 650
-FPS = 30
 
 # Set up the screen
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Ular Tangga 1v1")
 
-# Game Loop
 def main():
     try:
-        game = Game(screen)
-        game.run()
+        while True:
+            # Show menu and get selected mode
+            menu = Menu(screen)
+            selected_mode = menu.run()
+            
+            if selected_mode:
+                # Start game with selected mode
+                game = Game(screen, selected_mode)
+                result = game.run()
+                
+                if result == "quit":
+                    break
+                # If result is "menu", continue to show menu again
+            else:
+                break
+                
     except Exception as e:
         print(f"Error occurred: {e}")
     finally:
