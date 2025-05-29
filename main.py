@@ -22,7 +22,7 @@ def main():
             
             if selected_mode:
                 # Start game with selected mode
-                game = Game(screen, selected_mode)
+                game = Game(screen, selected_mode)  # Pass both screen and game_mode
                 result = game.run()
                 
                 if result == "quit":
@@ -33,6 +33,8 @@ def main():
                 
     except Exception as e:
         print(f"Error occurred: {e}")
+        import traceback
+        traceback.print_exc()
     finally:
         pygame.quit()
         sys.exit()
