@@ -1,14 +1,12 @@
 import pygame
-import random
-from player import Player
-from board import Board
+import sys
 from game import Game
 
 # Initialize Pygame
 pygame.init()
 
 # Game configuration
-WIDTH, HEIGHT = 800, 600
+WIDTH, HEIGHT = 900, 650
 FPS = 30
 
 # Set up the screen
@@ -17,8 +15,14 @@ pygame.display.set_caption("Ular Tangga 1v1")
 
 # Game Loop
 def main():
-    game = Game(screen)
-    game.run()
+    try:
+        game = Game(screen)
+        game.run()
+    except Exception as e:
+        print(f"Error occurred: {e}")
+    finally:
+        pygame.quit()
+        sys.exit()
 
 if __name__ == "__main__":
     main()
