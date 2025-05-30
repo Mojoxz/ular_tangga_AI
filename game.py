@@ -63,9 +63,9 @@ class Dice:
         
         # Draw roll instruction
         if not self.rolling:
-            font = pygame.font.SysFont('Arial', 14)
+            font = pygame.font.SysFont('Arial', 12)
             instruction = font.render("Klik untuk roll", True, (100, 100, 100))
-            instruction_rect = instruction.get_rect(center=(self.x + self.size//2, self.y + self.size + 20))
+            instruction_rect = instruction.get_rect(center=(self.x + self.size//2, self.y + self.size + 15))
             screen.blit(instruction, instruction_rect)
 
     def draw_dots(self, screen):
@@ -117,10 +117,10 @@ class Game:
         self.winner = None
         self.waiting_for_roll = True
         
-        # Initialize dice
-        self.dice = Dice(750, 300)
+        # Initialize dice - moved to right panel area to avoid covering board
+        self.dice = Dice(850, 150)
         
-        self.font = pygame.font.SysFont('Arial', 24)
+        self.font = pygame.font.SysFont('Arial', 20)
         
         # Set initial message based on player type
         if self.current_player.is_computer:
@@ -137,120 +137,183 @@ class Game:
 
     def draw(self):
         # Fill background with dark green
-        self.screen.fill((0, 100, 0))
+        self.screen.fill((34, 139, 34))
+        
+        # Draw main game board area background
+        board_bg = pygame.Rect(30, 30, 820, 620)
+        pygame.draw.rect(self.screen, (0, 80, 0), board_bg)
+        pygame.draw.rect(self.screen, (255, 255, 255), board_bg, 2)
         
         # Draw board
         self.board.draw(self.screen)
         
-        # Draw players
+        # Draw players on board
         self.player1.draw(self.screen)
         self.player2.draw(self.screen)
         
-        # Draw dice
+        # Draw right panel background for UI elements
+        right_panel = pygame.Rect(860, 30, 220, 620)
+        pygame.draw.rect(self.screen, (40, 40, 40), right_panel)
+        pygame.draw.rect(self.screen, (255, 255, 255), right_panel, 2)
+        
+        # Draw dice in right panel
         mouse_pos = pygame.mouse.get_pos()
         self.dice.draw(self.screen, mouse_pos)
         
-        # Draw game info
+        # Draw game info in right panel
         self.draw_game_info()
         
-        # Draw back to menu button
+        # Draw back to menu button in right panel
         self.draw_back_button()
         
         pygame.display.flip()
 
     def draw_game_info(self):
-        """Draw current player, dice value, and messages"""
-        # Current player info with highlight
-        current_text = f"Giliran: {self.current_player.name}"
-        text_surface = pygame.font.SysFont('Arial', 28, bold=True).render(current_text, True, self.current_player.color)
-        self.screen.blit(text_surface, (50, 10))
+        """Draw current player, dice value, and messages in right panel"""
+        # Right panel x coordinate
+        panel_x = 870
         
-        # Player positions in boxes
-        self.draw_player_info_box(self.player1, 50, 50)
-        self.draw_player_info_box(self.player2, 300, 50)
+        # Title
+        title_text = "ULAR TANGGA"
+        title_surface = pygame.font.SysFont('Arial', 20, bold=True).render(title_text, True, (255, 255, 255))
+        self.screen.blit(title_surface, (panel_x, 40))
         
         # Game mode
         mode_text = f"Mode: {self.game_mode}"
-        mode_surface = pygame.font.SysFont('Arial', 20).render(mode_text, True, (255, 255, 255))
-        self.screen.blit(mode_surface, (550, 50))
+        mode_surface = pygame.font.SysFont('Arial', 16).render(mode_text, True, (200, 200, 200))
+        self.screen.blit(mode_surface, (panel_x, 65))
+        
+        # Current player info with highlight
+        current_text = "Giliran:"
+        current_surface = pygame.font.SysFont('Arial', 18, bold=True).render(current_text, True, (255, 255, 255))
+        self.screen.blit(current_surface, (panel_x, 95))
+        
+        player_text = self.current_player.name
+        player_surface = pygame.font.SysFont('Arial', 16, bold=True).render(player_text, True, self.current_player.color)
+        self.screen.blit(player_surface, (panel_x, 115))
+        
+        # Player info boxes in right panel
+        self.draw_player_info_panel(self.player1, panel_x, 250)
+        self.draw_player_info_panel(self.player2, panel_x, 330)
         
         # Dice value display
         if self.dice.value > 0:
             dice_text = f"Dadu: {self.dice.value}"
-            dice_surface = pygame.font.SysFont('Arial', 24, bold=True).render(dice_text, True, (255, 255, 0))
-            self.screen.blit(dice_surface, (750, 250))
+            dice_surface = pygame.font.SysFont('Arial', 18, bold=True).render(dice_text, True, (255, 255, 0))
+            self.screen.blit(dice_surface, (panel_x, 410))
         
-        # Message
-        message_surface = self.font.render(self.message, True, (255, 255, 255))
-        message_rect = pygame.Rect(50, 580, 600, 30)
-        pygame.draw.rect(self.screen, (0, 0, 0, 128), message_rect)
-        self.screen.blit(message_surface, (55, 585))
+        # Message - word wrapped for narrow panel
+        self.draw_wrapped_message(self.message, panel_x, 450, 180)
         
         # Game over message
         if self.game_over and self.winner:
             self.draw_win_screen()
 
-    def draw_player_info_box(self, player, x, y):
-        """Draw player info in a styled box"""
-        box_rect = pygame.Rect(x, y, 200, 80)
+    def draw_player_info_panel(self, player, x, y):
+        """Draw player info in right panel"""
+        box_width = 180
+        box_height = 70
+        box_rect = pygame.Rect(x, y, box_width, box_height)
         
         # Highlight current player's box
         if player == self.current_player:
             pygame.draw.rect(self.screen, player.color, box_rect)
-            pygame.draw.rect(self.screen, (255, 255, 255), box_rect, 3)
+            pygame.draw.rect(self.screen, (255, 255, 255), box_rect, 2)
             text_color = (255, 255, 255)
         else:
-            pygame.draw.rect(self.screen, (50, 50, 50), box_rect)
-            pygame.draw.rect(self.screen, (150, 150, 150), box_rect, 2)
+            pygame.draw.rect(self.screen, (60, 60, 60), box_rect)
+            pygame.draw.rect(self.screen, (120, 120, 120), box_rect, 1)
             text_color = (200, 200, 200)
         
         # Player name
-        name_surface = pygame.font.SysFont('Arial', 20, bold=True).render(player.name, True, text_color)
-        self.screen.blit(name_surface, (x + 10, y + 10))
+        name_surface = pygame.font.SysFont('Arial', 16, bold=True).render(player.name, True, text_color)
+        self.screen.blit(name_surface, (x + 8, y + 8))
         
         # Player position
         pos_text = f"Kotak: {player.position}"
-        pos_surface = pygame.font.SysFont('Arial', 18).render(pos_text, True, text_color)
-        self.screen.blit(pos_surface, (x + 10, y + 35))
+        pos_surface = pygame.font.SysFont('Arial', 14).render(pos_text, True, text_color)
+        self.screen.blit(pos_surface, (x + 8, y + 28))
         
         # Player type
         type_text = "Computer" if player.is_computer else "Human"
-        type_surface = pygame.font.SysFont('Arial', 14).render(type_text, True, text_color)
-        self.screen.blit(type_surface, (x + 10, y + 55))
+        type_surface = pygame.font.SysFont('Arial', 12).render(type_text, True, text_color)
+        self.screen.blit(type_surface, (x + 8, y + 48))
+
+    def draw_wrapped_message(self, message, x, y, max_width):
+        """Draw message with word wrapping"""
+        words = message.split(' ')
+        lines = []
+        current_line = []
+        
+        font = pygame.font.SysFont('Arial', 14)
+        
+        for word in words:
+            test_line = ' '.join(current_line + [word])
+            test_surface = font.render(test_line, True, (255, 255, 255))
+            
+            if test_surface.get_width() <= max_width:
+                current_line.append(word)
+            else:
+                if current_line:
+                    lines.append(' '.join(current_line))
+                current_line = [word]
+        
+        if current_line:
+            lines.append(' '.join(current_line))
+        
+        # Draw lines
+        for i, line in enumerate(lines[:4]):  # Limit to 4 lines
+            line_surface = font.render(line, True, (255, 255, 255))
+            self.screen.blit(line_surface, (x, y + i * 18))
 
     def draw_win_screen(self):
-        """Draw victory screen"""
-        # Semi-transparent overlay
-        overlay = pygame.Surface((900, 650))
-        overlay.set_alpha(180)
+        """Draw victory screen overlay"""
+        # Semi-transparent overlay over entire screen
+        overlay = pygame.Surface((1100, 680))
+        overlay.set_alpha(200)
         overlay.fill((0, 0, 0))
         self.screen.blit(overlay, (0, 0))
         
+        # Victory box
+        win_box = pygame.Rect(200, 200, 500, 280)
+        pygame.draw.rect(self.screen, (40, 40, 40), win_box)
+        pygame.draw.rect(self.screen, (255, 255, 0), win_box, 4)
+        
         # Victory message
         win_text = f"{self.winner.name} MENANG!"
-        win_surface = pygame.font.SysFont('Arial', 60, bold=True).render(win_text, True, (255, 255, 0))
-        win_rect = win_surface.get_rect(center=(450, 250))
+        win_surface = pygame.font.SysFont('Arial', 48, bold=True).render(win_text, True, (255, 255, 0))
+        win_rect = win_surface.get_rect(center=(450, 280))
         self.screen.blit(win_surface, win_rect)
         
         # Final positions
-        final_text = f"Posisi Final - {self.player1.name}: {self.player1.position}, {self.player2.name}: {self.player2.position}"
-        final_surface = pygame.font.SysFont('Arial', 24).render(final_text, True, (255, 255, 255))
-        final_rect = final_surface.get_rect(center=(450, 320))
+        final_text = f"Posisi Final:"
+        final_surface = pygame.font.SysFont('Arial', 20).render(final_text, True, (255, 255, 255))
+        final_rect = final_surface.get_rect(center=(450, 330))
         self.screen.blit(final_surface, final_rect)
+        
+        p1_text = f"{self.player1.name}: {self.player1.position}"
+        p1_surface = pygame.font.SysFont('Arial', 18).render(p1_text, True, self.player1.color)
+        p1_rect = p1_surface.get_rect(center=(450, 355))
+        self.screen.blit(p1_surface, p1_rect)
+        
+        p2_text = f"{self.player2.name}: {self.player2.position}"
+        p2_surface = pygame.font.SysFont('Arial', 18).render(p2_text, True, self.player2.color)
+        p2_rect = p2_surface.get_rect(center=(450, 380))
+        self.screen.blit(p2_surface, p2_rect)
         
         # Instructions
         restart_text = "Tekan R untuk main lagi | Tekan M untuk menu utama"
-        restart_surface = pygame.font.SysFont('Arial', 20).render(restart_text, True, (200, 200, 200))
-        restart_rect = restart_surface.get_rect(center=(450, 380))
+        restart_surface = pygame.font.SysFont('Arial', 16).render(restart_text, True, (200, 200, 200))
+        restart_rect = restart_surface.get_rect(center=(450, 420))
         self.screen.blit(restart_surface, restart_rect)
 
     def draw_back_button(self):
-        """Draw back to menu button"""
-        button_rect = pygame.Rect(750, 580, 120, 40)
+        """Draw back to menu button in right panel"""
+        button_rect = pygame.Rect(870, 580, 180, 35)
         pygame.draw.rect(self.screen, (100, 100, 100), button_rect)
         pygame.draw.rect(self.screen, (255, 255, 255), button_rect, 2)
         
-        button_text = pygame.font.SysFont('Arial', 18).render("Menu Utama", True, (255, 255, 255))
+        button_text = pygame.font.SysFont('Arial', 16).render("Menu Utama", True, (255, 255, 255))
         button_text_rect = button_text.get_rect(center=button_rect.center)
         self.screen.blit(button_text, button_text_rect)
         
