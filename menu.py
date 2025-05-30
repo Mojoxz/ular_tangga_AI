@@ -178,7 +178,6 @@ class Menu:
             text_rect = text_surface.get_rect(center=(self.width//2, start_y + i * 20))
             self.screen.blit(text_surface, text_rect)
 
-
     def draw_footer(self):
         """Draw footer information"""
         footer_text = "Dibuat dengan ❤️ menggunakan Pygame | © 2024"
@@ -225,9 +224,8 @@ class Menu:
         
         pygame.display.flip()
 
-
     def handle_events(self):
-        """Handle user input events - UPDATED dengan AI options"""
+        """Handle user input events - FIXED untuk mengatasi error hashable type"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -249,23 +247,24 @@ class Menu:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left click
                     mouse_pos = pygame.mouse.get_pos()
-                    button_to_mode = {
-                        self.button_1v1: "1v1",
-                        self.button_1vcomputer_easy: "1vcomputer_easy",
-                        self.button_1vcomputer_medium: "1vcomputer_medium",
-                        self.button_1vcomputer_hard: "1vcomputer_hard",
-                        self.button_quit: None,  # Quit button
-                    }
-                    for button, mode in button_to_mode.items():
-                        if button.collidepoint(mouse_pos):
-                            if mode:
-                                self.selected_mode = mode
-                                return True
-                            else:
-                                pygame.quit()
-                                sys.exit()
+                    
+                    # Check each button individually instead of using dict with Rect keys
+                    if self.button_1v1.collidepoint(mouse_pos):
+                        self.selected_mode = "1v1"
+                        return True
+                    elif self.button_1vcomputer_easy.collidepoint(mouse_pos):
+                        self.selected_mode = "1vcomputer_easy"
+                        return True
+                    elif self.button_1vcomputer_medium.collidepoint(mouse_pos):
+                        self.selected_mode = "1vcomputer_medium"
+                        return True
+                    elif self.button_1vcomputer_hard.collidepoint(mouse_pos):
+                        self.selected_mode = "1vcomputer_hard"
+                        return True
+                    elif self.button_quit.collidepoint(mouse_pos):
+                        pygame.quit()
+                        sys.exit()
         return False
-
 
     def run(self):
         """Main menu loop"""
