@@ -21,30 +21,30 @@ class Menu:
         self.time = 0
         self.logo_bounce = 0
         
-        # Button configuration
+        # Button configuration - UPDATED untuk AI options
         button_width = 320
-        button_height = 70
-        button_spacing = 20
-        start_y = 280
+        button_height = 60
+        button_spacing = 15
+        start_y = 250
         
         center_x = self.width // 2
         
-        # Button rectangles - centered and well-spaced
+        # Button rectangles - TAMBAHKAN TOMBOL AI
         self.button_1v1 = pygame.Rect(center_x - button_width//2, start_y, button_width, button_height)
-        self.button_1vcomputer = pygame.Rect(center_x - button_width//2, start_y + button_height + button_spacing, button_width, button_height)
-        self.button_quit = pygame.Rect(center_x - button_width//2, start_y + 2*(button_height + button_spacing), button_width, button_height)
+        self.button_1vcomputer_easy = pygame.Rect(center_x - button_width//2, start_y + (button_height + button_spacing), button_width, button_height)
+        self.button_1vcomputer_medium = pygame.Rect(center_x - button_width//2, start_y + 2*(button_height + button_spacing), button_width, button_height)
+        self.button_1vcomputer_hard = pygame.Rect(center_x - button_width//2, start_y + 3*(button_height + button_spacing), button_width, button_height)
+        self.button_quit = pygame.Rect(center_x - button_width//2, start_y + 4*(button_height + button_spacing), button_width, button_height)
         
-        # Colors - Modern color scheme
-        self.bg_gradient_top = (25, 50, 25)      # Dark forest green
-        self.bg_gradient_bottom = (15, 30, 15)   # Darker green
-        
-        self.button_normal = (70, 130, 70)       # Medium green
-        self.button_hover = (90, 160, 90)        # Lighter green
-        self.button_shadow = (40, 80, 40)        # Dark green shadow
-        
-        self.text_title = (255, 215, 0)          # Gold
-        self.text_subtitle = (200, 255, 200)     # Light green
-        self.text_button = (255, 255, 255)       # White
+        # Colors - sama seperti sebelumnya
+        self.bg_gradient_top = (25, 50, 25)
+        self.bg_gradient_bottom = (15, 30, 15)
+        self.button_normal = (70, 130, 70)
+        self.button_hover = (90, 160, 90)
+        self.button_shadow = (40, 80, 40)
+        self.text_title = (255, 215, 0)
+        self.text_subtitle = (200, 255, 200)
+        self.text_button = (255, 255, 255)
         self.text_instruction = (180, 180, 180)  # Light gray
 
     def draw_gradient_background(self):
@@ -160,20 +160,24 @@ class Menu:
             glow_rect = glow_surface.get_rect(center=button_rect.center)
             self.screen.blit(glow_surface, glow_rect)
 
-    def draw_instructions(self):
-        """Draw game instructions and controls"""
+    def draw_instructions_enhanced(self):
+        """Draw enhanced game instructions with AI info"""
         instructions = [
             "🎮 Pilih mode permainan untuk memulai",
-            "🎲 Klik dadu untuk melempar",
-            "🐍 Hati-hati dengan ular!",
-            "🪜 Manfaatkan tangga untuk naik cepat"
+            "🤖 AI Mudah: Bermain santai, kadang membuat kesalahan",
+            "🤖 AI Sedang: Seimbang antara strategi dan risiko", 
+            "🤖 AI Sulit: Sangat strategis dan sulit dikalahkan",
+            "🎲 Klik dadu untuk melempar | 🐍 Hati-hati ular! | 🪜 Manfaatkan tangga!"
         ]
         
         start_y = 520
         for i, instruction in enumerate(instructions):
-            text_surface = self.font_small.render(instruction, True, self.text_instruction)
-            text_rect = text_surface.get_rect(center=(self.width//2, start_y + i * 25))
+            font_size = 16 if i == 0 else 14
+            font = pygame.font.SysFont('Arial', font_size)
+            text_surface = font.render(instruction, True, self.text_instruction)
+            text_rect = text_surface.get_rect(center=(self.width//2, start_y + i * 20))
             self.screen.blit(text_surface, text_rect)
+
 
     def draw_footer(self):
         """Draw footer information"""
@@ -190,7 +194,7 @@ class Menu:
         self.logo_bounce = math.sin(self.time * 0.03) * 5
 
     def draw(self):
-        """Main draw method"""
+        """Main draw method - UPDATED dengan AI options"""
         # Update animations
         self.update_animations()
         
@@ -206,32 +210,38 @@ class Menu:
         # Get mouse position for hover effects
         mouse_pos = pygame.mouse.get_pos()
         
-        # Draw buttons with icons
+        # Draw buttons with icons - UPDATED
         self.draw_button(self.button_1v1, "Pemain vs Pemain", mouse_pos, "👥")
-        self.draw_button(self.button_1vcomputer, "Pemain vs Komputer", mouse_pos, "🤖")
+        self.draw_button(self.button_1vcomputer_easy, "vs Komputer (Mudah)", mouse_pos, "🤖😊")
+        self.draw_button(self.button_1vcomputer_medium, "vs Komputer (Sedang)", mouse_pos, "🤖😐")
+        self.draw_button(self.button_1vcomputer_hard, "vs Komputer (Sulit)", mouse_pos, "🤖😤")
         self.draw_button(self.button_quit, "Keluar", mouse_pos, "🚪")
         
-        # Draw instructions
-        self.draw_instructions()
+        # Draw instructions - UPDATED
+        self.draw_instructions_enhanced()
         
         # Draw footer
         self.draw_footer()
         
         pygame.display.flip()
 
+
     def handle_events(self):
-        """Handle user input events"""
+        """Handle user input events - UPDATED dengan AI options"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
-                # Keyboard shortcuts
-                if event.key == pygame.K_1:
-                    self.selected_mode = "1v1"
-                    return True
-                elif event.key == pygame.K_2:
-                    self.selected_mode = "1vcomputer"
+                # Keyboard shortcuts - UPDATED
+                key_to_mode = {
+                    pygame.K_1: "1v1",
+                    pygame.K_2: "1vcomputer_easy",
+                    pygame.K_3: "1vcomputer_medium",
+                    pygame.K_4: "1vcomputer_hard",
+                }
+                if event.key in key_to_mode:
+                    self.selected_mode = key_to_mode[event.key]
                     return True
                 elif event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
                     pygame.quit()
@@ -239,16 +249,23 @@ class Menu:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left click
                     mouse_pos = pygame.mouse.get_pos()
-                    if self.button_1v1.collidepoint(mouse_pos):
-                        self.selected_mode = "1v1"
-                        return True
-                    elif self.button_1vcomputer.collidepoint(mouse_pos):
-                        self.selected_mode = "1vcomputer"
-                        return True
-                    elif self.button_quit.collidepoint(mouse_pos):
-                        pygame.quit()
-                        sys.exit()
+                    button_to_mode = {
+                        self.button_1v1: "1v1",
+                        self.button_1vcomputer_easy: "1vcomputer_easy",
+                        self.button_1vcomputer_medium: "1vcomputer_medium",
+                        self.button_1vcomputer_hard: "1vcomputer_hard",
+                        self.button_quit: None,  # Quit button
+                    }
+                    for button, mode in button_to_mode.items():
+                        if button.collidepoint(mouse_pos):
+                            if mode:
+                                self.selected_mode = mode
+                                return True
+                            else:
+                                pygame.quit()
+                                sys.exit()
         return False
+
 
     def run(self):
         """Main menu loop"""
