@@ -126,8 +126,8 @@ class Game:
         self.winner = None
         self.waiting_for_roll = True
         
-        # Initialize dice
-        self.dice = Dice(750, 300)
+        # Initialize dice - pindahkan ke sebelah kanan board
+        self.dice = Dice(770, 200)
         
         self.font = pygame.font.SysFont('Arial', 24)
         
@@ -196,27 +196,27 @@ class Game:
 
     def draw_game_info(self):
         """Draw current player, dice value, and messages"""
-        # Current player info with highlight
+        # Current player info dengan posisi yang diperbaiki - pindah ke bawah board
         current_text = f"Giliran: {self.current_player.name}"
         text_surface = pygame.font.SysFont('Arial', 28, bold=True).render(current_text, True, self.current_player.color)
-        self.screen.blit(text_surface, (50, 10))
+        self.screen.blit(text_surface, (50, 620))  # Pindah ke bawah
         
-        # Player positions in boxes
-        self.draw_player_info_box(self.player1, 50, 50)
-        self.draw_player_info_box(self.player2, 300, 50)
+        # Player positions boxes - pindah ke area kanan board
+        self.draw_player_info_box(self.player1, 770, 80)   # Sebelah kanan atas
+        self.draw_player_info_box(self.player2, 770, 300)  # Sebelah kanan tengah
         
-        # Game mode with enhanced display
+        # Game mode dengan posisi yang diperbaiki
         mode_text = self.get_difficulty_display()
         mode_surface = pygame.font.SysFont('Arial', 18, bold=True).render(mode_text, True, (255, 255, 255))
-        self.screen.blit(mode_surface, (550, 50))
+        self.screen.blit(mode_surface, (300, 620))  # Pindah ke bawah
         
-        # Dice value display
+        # Dice value display - pindah ke samping dadu
         if self.dice.value > 0:
             dice_text = f"Dadu: {self.dice.value}"
             dice_surface = pygame.font.SysFont('Arial', 24, bold=True).render(dice_text, True, (255, 255, 0))
-            self.screen.blit(dice_surface, (750, 250))
+            self.screen.blit(dice_surface, (770, 160))  # Di atas dadu
         
-        # Message
+        # Message - tetap di bawah
         message_surface = self.font.render(self.message, True, (255, 255, 255))
         message_rect = pygame.Rect(50, 580, 600, 30)
         pygame.draw.rect(self.screen, (0, 0, 0, 128), message_rect)
@@ -227,8 +227,8 @@ class Game:
             self.draw_win_screen()
 
     def draw_player_info_box(self, player, x, y):
-        """Draw player info in a styled box"""
-        box_rect = pygame.Rect(x, y, 220, 100)
+        """Draw player info in a styled box dengan ukuran yang diperbaiki"""
+        box_rect = pygame.Rect(x, y, 180, 90)  # Lebih kecil dan compact
         
         # Highlight current player's box
         if player == self.current_player:
@@ -241,13 +241,13 @@ class Game:
             text_color = (200, 200, 200)
         
         # Player name
-        name_surface = pygame.font.SysFont('Arial', 20, bold=True).render(player.name, True, text_color)
-        self.screen.blit(name_surface, (x + 10, y + 10))
+        name_surface = pygame.font.SysFont('Arial', 18, bold=True).render(player.name, True, text_color)
+        self.screen.blit(name_surface, (x + 8, y + 8))
         
         # Player position
         pos_text = f"Kotak: {player.position}"
-        pos_surface = pygame.font.SysFont('Arial', 18).render(pos_text, True, text_color)
-        self.screen.blit(pos_surface, (x + 10, y + 35))
+        pos_surface = pygame.font.SysFont('Arial', 16).render(pos_text, True, text_color)
+        self.screen.blit(pos_surface, (x + 8, y + 28))
         
         # Player type and additional info
         if player.is_computer:
@@ -256,41 +256,41 @@ class Game:
             else:
                 type_text = "Computer"
             
-            # Progress bar for AI
+            # Progress bar untuk AI
             progress = player.position / 100
-            bar_rect = pygame.Rect(x + 10, y + 75, 180, 8)
+            bar_rect = pygame.Rect(x + 8, y + 68, 160, 6)
             pygame.draw.rect(self.screen, (100, 100, 100), bar_rect)
-            progress_rect = pygame.Rect(x + 10, y + 75, int(180 * progress), 8)
+            progress_rect = pygame.Rect(x + 8, y + 68, int(160 * progress), 6)
             pygame.draw.rect(self.screen, player.color, progress_rect)
         else:
             type_text = "Human"
-            # Progress bar for human too
+            # Progress bar untuk human juga
             progress = player.position / 100
-            bar_rect = pygame.Rect(x + 10, y + 75, 180, 8)
+            bar_rect = pygame.Rect(x + 8, y + 68, 160, 6)
             pygame.draw.rect(self.screen, (100, 100, 100), bar_rect)
-            progress_rect = pygame.Rect(x + 10, y + 75, int(180 * progress), 8)
+            progress_rect = pygame.Rect(x + 8, y + 68, int(160 * progress), 6)
             pygame.draw.rect(self.screen, player.color, progress_rect)
         
-        type_surface = pygame.font.SysFont('Arial', 14).render(type_text, True, text_color)
-        self.screen.blit(type_surface, (x + 10, y + 55))
+        type_surface = pygame.font.SysFont('Arial', 12).render(type_text, True, text_color)
+        self.screen.blit(type_surface, (x + 8, y + 48))
 
     def draw_ai_info(self):
-        """Draw AI decision making information"""
+        """Draw AI decision making information dengan posisi yang diperbaiki"""
         if not self.ai_decision_info or not self.current_player.is_computer:
             return
             
-        # AI Info Box
-        info_rect = pygame.Rect(550, 300, 180, 120)
+        # AI Info Box - pindah ke bawah player info boxes
+        info_rect = pygame.Rect(770, 420, 180, 120)
         pygame.draw.rect(self.screen, (30, 30, 50), info_rect)
         pygame.draw.rect(self.screen, (100, 150, 255), info_rect, 2)
         
         # Title
         title_surface = pygame.font.SysFont('Arial', 16, bold=True).render("AI Status", True, (255, 255, 255))
-        self.screen.blit(title_surface, (555, 305))
+        self.screen.blit(title_surface, (775, 425))
         
         # AI info
-        y_offset = 325
-        font_small = pygame.font.SysFont('Arial', 12)
+        y_offset = 445
+        font_small = pygame.font.SysFont('Arial', 11)
         
         info_lines = [
             f"Strategi: {self.ai_decision_info.get('strategy', 'Unknown')}",
@@ -301,15 +301,15 @@ class Game:
         
         for line in info_lines:
             line_surface = font_small.render(line, True, (220, 220, 220))
-            self.screen.blit(line_surface, (555, y_offset))
-            y_offset += 18
+            self.screen.blit(line_surface, (775, y_offset))
+            y_offset += 16
         
         # Thinking animation
         if self.current_player.is_computer and self.waiting_for_roll:
             thinking_dots = "." * ((pygame.time.get_ticks() // 300) % 4)
             thinking_text = f"Berpikir{thinking_dots}"
             thinking_surface = font_small.render(thinking_text, True, (100, 255, 100))
-            self.screen.blit(thinking_surface, (555, y_offset))
+            self.screen.blit(thinking_surface, (775, y_offset))
 
     def draw_win_screen(self):
         """Draw victory screen"""
@@ -351,12 +351,12 @@ class Game:
         self.screen.blit(restart_surface, restart_rect)
 
     def draw_back_button(self):
-        """Draw back to menu button"""
-        button_rect = pygame.Rect(750, 580, 120, 40)
+        """Draw back to menu button dengan posisi yang diperbaiki"""
+        button_rect = pygame.Rect(770, 560, 120, 35)  # Pindah ke kanan bawah
         pygame.draw.rect(self.screen, (100, 100, 100), button_rect)
         pygame.draw.rect(self.screen, (255, 255, 255), button_rect, 2)
         
-        button_text = pygame.font.SysFont('Arial', 18).render("Menu Utama", True, (255, 255, 255))
+        button_text = pygame.font.SysFont('Arial', 16).render("Menu Utama", True, (255, 255, 255))
         button_text_rect = button_text.get_rect(center=button_rect.center)
         self.screen.blit(button_text, button_text_rect)
         
