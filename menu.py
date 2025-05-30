@@ -14,6 +14,7 @@ class Menu:
         self.font_subtitle = pygame.font.SysFont('Arial', 24)
         self.font_button = pygame.font.SysFont('Arial', 28, bold=True)
         self.font_small = pygame.font.SysFont('Arial', 18)
+        self.font_instructions = pygame.font.SysFont('Arial', 16)
         
         self.selected_mode = None
         
@@ -21,22 +22,23 @@ class Menu:
         self.time = 0
         self.logo_bounce = 0
         
-        # Button configuration - UPDATED untuk AI options
-        button_width = 320
-        button_height = 60
-        button_spacing = 15
-        start_y = 250
+        # Layout configuration - better spacing
+        button_width = 300
+        button_height = 55
+        button_spacing = 12
+        start_y = 280
         
-        center_x = self.width // 2
+        # Center buttons more to the right to leave space for instructions
+        center_x = self.width // 2 + 100
         
-        # Button rectangles - TAMBAHKAN TOMBOL AI
+        # Button rectangles
         self.button_1v1 = pygame.Rect(center_x - button_width//2, start_y, button_width, button_height)
         self.button_1vcomputer_easy = pygame.Rect(center_x - button_width//2, start_y + (button_height + button_spacing), button_width, button_height)
         self.button_1vcomputer_medium = pygame.Rect(center_x - button_width//2, start_y + 2*(button_height + button_spacing), button_width, button_height)
         self.button_1vcomputer_hard = pygame.Rect(center_x - button_width//2, start_y + 3*(button_height + button_spacing), button_width, button_height)
         self.button_quit = pygame.Rect(center_x - button_width//2, start_y + 4*(button_height + button_spacing), button_width, button_height)
         
-        # Colors - sama seperti sebelumnya
+        # Colors
         self.bg_gradient_top = (25, 50, 25)
         self.bg_gradient_bottom = (15, 30, 15)
         self.button_normal = (70, 130, 70)
@@ -45,7 +47,8 @@ class Menu:
         self.text_title = (255, 215, 0)
         self.text_subtitle = (200, 255, 200)
         self.text_button = (255, 255, 255)
-        self.text_instruction = (180, 180, 180)  # Light gray
+        self.text_instruction = (180, 180, 180)
+        self.instruction_bg = (30, 30, 30, 200)
 
     def draw_gradient_background(self):
         """Draw a gradient background"""
@@ -57,44 +60,26 @@ class Menu:
             pygame.draw.line(self.screen, (r, g, b), (0, y), (self.width, y))
 
     def draw_decorative_elements(self):
-        """Draw decorative snake and ladder elements"""
-        # Draw some decorative snakes (simplified)
+        """Draw decorative snake and ladder elements - adjusted for left side"""
+        # Move decorations to not interfere with instructions
         snake_color = (100, 200, 100)
         
-        # Left side snake decoration
+        # Right side snake decoration (moved further right)
         for i in range(5):
-            x = 50 + i * 15
+            x = self.width - 80 - i * 15
             y = 200 + math.sin(self.time * 0.05 + i * 0.5) * 10
             pygame.draw.circle(self.screen, snake_color, (int(x), int(y)), 8)
             if i > 0:
-                prev_x = 50 + (i-1) * 15
+                prev_x = self.width - 80 - (i-1) * 15
                 prev_y = 200 + math.sin(self.time * 0.05 + (i-1) * 0.5) * 10
                 pygame.draw.line(self.screen, snake_color, (int(prev_x), int(prev_y)), (int(x), int(y)), 6)
         
-        # Right side snake decoration (mirrored)
-        for i in range(5):
-            x = self.width - 50 - i * 15
-            y = 200 + math.sin(self.time * 0.05 + i * 0.5) * 10
-            pygame.draw.circle(self.screen, snake_color, (int(x), int(y)), 8)
-            if i > 0:
-                prev_x = self.width - 50 - (i-1) * 15
-                prev_y = 200 + math.sin(self.time * 0.05 + (i-1) * 0.5) * 10
-                pygame.draw.line(self.screen, snake_color, (int(prev_x), int(prev_y)), (int(x), int(y)), 6)
-        
-        # Draw ladder decorations
+        # Draw ladder decorations on the right side only
         ladder_color = (160, 120, 80)
         
-        # Left ladder
-        ladder_x = 80
+        # Right ladder (moved further right)
+        ladder_x = self.width - 120
         ladder_y = 450
-        pygame.draw.line(self.screen, ladder_color, (ladder_x, ladder_y), (ladder_x, ladder_y + 80), 6)
-        pygame.draw.line(self.screen, ladder_color, (ladder_x + 30, ladder_y), (ladder_x + 30, ladder_y + 80), 6)
-        for i in range(4):
-            rung_y = ladder_y + 15 + i * 18
-            pygame.draw.line(self.screen, ladder_color, (ladder_x, rung_y), (ladder_x + 30, rung_y), 4)
-        
-        # Right ladder
-        ladder_x = self.width - 110
         pygame.draw.line(self.screen, ladder_color, (ladder_x, ladder_y), (ladder_x, ladder_y + 80), 6)
         pygame.draw.line(self.screen, ladder_color, (ladder_x + 30, ladder_y), (ladder_x + 30, ladder_y + 80), 6)
         for i in range(4):
@@ -104,7 +89,7 @@ class Menu:
     def draw_title_section(self):
         """Draw the title and subtitle with animation"""
         # Animated title with bounce effect
-        title_y = 120 + self.logo_bounce
+        title_y = 100 + self.logo_bounce
         
         # Draw title shadow first
         title_shadow = self.font_title.render("ULAR TANGGA", True, (100, 100, 0))
@@ -160,23 +145,81 @@ class Menu:
             glow_rect = glow_surface.get_rect(center=button_rect.center)
             self.screen.blit(glow_surface, glow_rect)
 
-    def draw_instructions_enhanced(self):
-        """Draw enhanced game instructions with AI info"""
+    def draw_instructions_left_side(self):
+        """Draw enhanced game instructions on the left side"""
         instructions = [
             "🎮 Pilih mode permainan untuk memulai",
-            "🤖 AI Mudah: Bermain santai, kadang membuat kesalahan",
-            "🤖 AI Sedang: Seimbang antara strategi dan risiko", 
-            "🤖 AI Sulit: Sangat strategis dan sulit dikalahkan",
-            "🎲 Klik dadu untuk melempar | 🐍 Hati-hati ular! | 🪜 Manfaatkan tangga!"
+            "",
+            "🤖 AI Mudah:",
+            "   Bermain santai, kadang membuat kesalahan",
+            "",
+            "🤖 AI Sedang:",
+            "   Seimbang antara strategi dan risiko",
+            "",
+            "🤖 AI Sulit:",
+            "   Sangat strategis dan sulit dikalahkan",
+            "",
+            "🎲 Cara Bermain:",
+            "   • Klik dadu untuk melempar",
+            "   • 🐍 Hati-hati ular!",
+            "   • 🪜 Manfaatkan tangga!",
+            "",
+            "⌨️ Shortcut Keyboard:",
+            "   • 1 = Player vs Player",
+            "   • 2 = vs AI Mudah",
+            "   • 3 = vs AI Sedang", 
+            "   • 4 = vs AI Sulit"
         ]
         
-        start_y = 520
+        # Background panel for instructions
+        panel_x = 30
+        panel_y = 250
+        panel_width = 350
+        panel_height = 400
+        
+        # Create semi-transparent background
+        instruction_surface = pygame.Surface((panel_width, panel_height))
+        instruction_surface.set_alpha(180)
+        instruction_surface.fill((20, 20, 20))
+        self.screen.blit(instruction_surface, (panel_x, panel_y))
+        
+        # Draw border
+        pygame.draw.rect(self.screen, (100, 150, 100), (panel_x, panel_y, panel_width, panel_height), 3, border_radius=10)
+        
+        # Draw title for instructions panel
+        title_font = pygame.font.SysFont('Arial', 20, bold=True)
+        title_text = title_font.render("📋 PANDUAN PERMAINAN", True, (255, 215, 0))
+        self.screen.blit(title_text, (panel_x + 15, panel_y + 15))
+        
+        # Draw instructions
+        start_y = panel_y + 50
+        line_height = 18
+        
         for i, instruction in enumerate(instructions):
-            font_size = 16 if i == 0 else 14
-            font = pygame.font.SysFont('Arial', font_size)
-            text_surface = font.render(instruction, True, self.text_instruction)
-            text_rect = text_surface.get_rect(center=(self.width//2, start_y + i * 20))
-            self.screen.blit(text_surface, text_rect)
+            if instruction == "":  # Empty line for spacing
+                continue
+                
+            # Determine font and color based on content
+            if instruction.startswith("🤖") or instruction.startswith("🎮") or instruction.startswith("🎲") or instruction.startswith("⌨️"):
+                font = pygame.font.SysFont('Arial', 16, bold=True)
+                color = (255, 255, 150)  # Yellow for headers
+            elif instruction.startswith("   "):  # Indented text
+                font = pygame.font.SysFont('Arial', 14)
+                color = (200, 200, 200)  # Light gray for sub-items
+                instruction = instruction[3:]  # Remove indentation
+            else:
+                font = pygame.font.SysFont('Arial', 15)
+                color = self.text_instruction
+            
+            text_surface = font.render(instruction, True, color)
+            text_y = start_y + i * line_height
+            
+            # Adjust X position for indented items
+            text_x = panel_x + 15
+            if instruction.startswith("•"):
+                text_x += 20
+            
+            self.screen.blit(text_surface, (text_x, text_y))
 
     def draw_footer(self):
         """Draw footer information"""
@@ -193,7 +236,7 @@ class Menu:
         self.logo_bounce = math.sin(self.time * 0.03) * 5
 
     def draw(self):
-        """Main draw method - UPDATED dengan AI options"""
+        """Main draw method with improved layout"""
         # Update animations
         self.update_animations()
         
@@ -206,18 +249,18 @@ class Menu:
         # Draw title section
         self.draw_title_section()
         
+        # Draw instructions on the left side
+        self.draw_instructions_left_side()
+        
         # Get mouse position for hover effects
         mouse_pos = pygame.mouse.get_pos()
         
-        # Draw buttons with icons - UPDATED
+        # Draw buttons (now positioned more to the right)
         self.draw_button(self.button_1v1, "Pemain vs Pemain", mouse_pos, "👥")
         self.draw_button(self.button_1vcomputer_easy, "vs Komputer (Mudah)", mouse_pos, "🤖😊")
         self.draw_button(self.button_1vcomputer_medium, "vs Komputer (Sedang)", mouse_pos, "🤖😐")
         self.draw_button(self.button_1vcomputer_hard, "vs Komputer (Sulit)", mouse_pos, "🤖😤")
         self.draw_button(self.button_quit, "Keluar", mouse_pos, "🚪")
-        
-        # Draw instructions - UPDATED
-        self.draw_instructions_enhanced()
         
         # Draw footer
         self.draw_footer()
@@ -225,13 +268,13 @@ class Menu:
         pygame.display.flip()
 
     def handle_events(self):
-        """Handle user input events - FIXED untuk mengatasi error hashable type"""
+        """Handle user input events"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
-                # Keyboard shortcuts - UPDATED
+                # Keyboard shortcuts
                 key_to_mode = {
                     pygame.K_1: "1v1",
                     pygame.K_2: "1vcomputer_easy",
@@ -248,7 +291,7 @@ class Menu:
                 if event.button == 1:  # Left click
                     mouse_pos = pygame.mouse.get_pos()
                     
-                    # Check each button individually instead of using dict with Rect keys
+                    # Check each button individually
                     if self.button_1v1.collidepoint(mouse_pos):
                         self.selected_mode = "1v1"
                         return True
