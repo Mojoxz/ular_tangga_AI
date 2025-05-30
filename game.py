@@ -99,7 +99,7 @@ class Game:
         
         # Import here to avoid circular import
         from board import Board
-        from player import Player
+        from player import Player, EnhancedAIPlayer
         
         self.board = Board()
         self.game_mode = game_mode
@@ -108,7 +108,16 @@ class Game:
         if game_mode == "1v1":
             self.player1 = Player("Player 1", (255, 0, 0))  # Red
             self.player2 = Player("Player 2", (0, 0, 255))  # Blue
-        else:  # 1vcomputer
+        elif game_mode == "1vcomputer_easy":
+            self.player1 = Player("Player", (255, 0, 0))  # Red
+            self.player2 = EnhancedAIPlayer("AI (Mudah)", (0, 0, 255), difficulty="easy")  # Blue
+        elif game_mode == "1vcomputer_medium":
+            self.player1 = Player("Player", (255, 0, 0))  # Red
+            self.player2 = EnhancedAIPlayer("AI (Sedang)", (0, 0, 255), difficulty="medium")  # Blue
+        elif game_mode == "1vcomputer_hard":
+            self.player1 = Player("Player", (255, 0, 0))  # Red
+            self.player2 = EnhancedAIPlayer("AI (Sulit)", (0, 0, 255), difficulty="hard")  # Blue
+        else:  # fallback to basic computer
             self.player1 = Player("Player", (255, 0, 0))  # Red
             self.player2 = Player("Computer", (0, 0, 255), is_computer=True)  # Blue
         
@@ -122,10 +131,16 @@ class Game:
         
         self.font = pygame.font.SysFont('Arial', 24)
         
+        # AI decision info for display
+        self.ai_decision_info = {}
+        
         # Set initial message based on player type
         if self.current_player.is_computer:
             self.message = "Computer sedang berpikir..."
             self.current_player.set_move_time()
+            if hasattr(self.current_player, 'get_ai_decision_info'):
+                self.ai_decision_info = self.current_player.get_ai_decision_info(
+                    self.board, self.get_opponent().position)
         else:
             self.message = "Klik dadu untuk roll"
         
@@ -134,6 +149,23 @@ class Game:
         self.animation_start_pos = 1
         self.animation_target_pos = 1
         self.animation_progress = 0
+
+    def get_opponent(self):
+        """Get the opponent of current player"""
+        return self.player2 if self.current_player == self.player1 else self.player1
+
+    def get_difficulty_display(self):
+        """Get difficulty display string"""
+        if self.game_mode == "1v1":
+            return "Pemain vs Pemain"
+        elif "easy" in self.game_mode:
+            return "vs AI Mudah 🤖😊"
+        elif "medium" in self.game_mode:
+            return "vs AI Sedang 🤖😐"
+        elif "hard" in self.game_mode:
+            return "vs AI Sulit 🤖😤"
+        else:
+            return "vs Computer"
 
     def draw(self):
         # Fill background with dark green
@@ -153,6 +185,10 @@ class Game:
         # Draw game info
         self.draw_game_info()
         
+        # Draw AI info if applicable
+        if hasattr(self.current_player, 'get_ai_decision_info'):
+            self.draw_ai_info()
+        
         # Draw back to menu button
         self.draw_back_button()
         
@@ -169,9 +205,9 @@ class Game:
         self.draw_player_info_box(self.player1, 50, 50)
         self.draw_player_info_box(self.player2, 300, 50)
         
-        # Game mode
-        mode_text = f"Mode: {self.game_mode}"
-        mode_surface = pygame.font.SysFont('Arial', 20).render(mode_text, True, (255, 255, 255))
+        # Game mode with enhanced display
+        mode_text = self.get_difficulty_display()
+        mode_surface = pygame.font.SysFont('Arial', 18, bold=True).render(mode_text, True, (255, 255, 255))
         self.screen.blit(mode_surface, (550, 50))
         
         # Dice value display
@@ -192,7 +228,7 @@ class Game:
 
     def draw_player_info_box(self, player, x, y):
         """Draw player info in a styled box"""
-        box_rect = pygame.Rect(x, y, 200, 80)
+        box_rect = pygame.Rect(x, y, 220, 100)
         
         # Highlight current player's box
         if player == self.current_player:
@@ -213,10 +249,67 @@ class Game:
         pos_surface = pygame.font.SysFont('Arial', 18).render(pos_text, True, text_color)
         self.screen.blit(pos_surface, (x + 10, y + 35))
         
-        # Player type
-        type_text = "Computer" if player.is_computer else "Human"
+        # Player type and additional info
+        if player.is_computer:
+            if hasattr(player, 'difficulty'):
+                type_text = f"AI ({player.difficulty.capitalize()})"
+            else:
+                type_text = "Computer"
+            
+            # Progress bar for AI
+            progress = player.position / 100
+            bar_rect = pygame.Rect(x + 10, y + 75, 180, 8)
+            pygame.draw.rect(self.screen, (100, 100, 100), bar_rect)
+            progress_rect = pygame.Rect(x + 10, y + 75, int(180 * progress), 8)
+            pygame.draw.rect(self.screen, player.color, progress_rect)
+        else:
+            type_text = "Human"
+            # Progress bar for human too
+            progress = player.position / 100
+            bar_rect = pygame.Rect(x + 10, y + 75, 180, 8)
+            pygame.draw.rect(self.screen, (100, 100, 100), bar_rect)
+            progress_rect = pygame.Rect(x + 10, y + 75, int(180 * progress), 8)
+            pygame.draw.rect(self.screen, player.color, progress_rect)
+        
         type_surface = pygame.font.SysFont('Arial', 14).render(type_text, True, text_color)
         self.screen.blit(type_surface, (x + 10, y + 55))
+
+    def draw_ai_info(self):
+        """Draw AI decision making information"""
+        if not self.ai_decision_info or not self.current_player.is_computer:
+            return
+            
+        # AI Info Box
+        info_rect = pygame.Rect(550, 300, 180, 120)
+        pygame.draw.rect(self.screen, (30, 30, 50), info_rect)
+        pygame.draw.rect(self.screen, (100, 150, 255), info_rect, 2)
+        
+        # Title
+        title_surface = pygame.font.SysFont('Arial', 16, bold=True).render("AI Status", True, (255, 255, 255))
+        self.screen.blit(title_surface, (555, 305))
+        
+        # AI info
+        y_offset = 325
+        font_small = pygame.font.SysFont('Arial', 12)
+        
+        info_lines = [
+            f"Strategi: {self.ai_decision_info.get('strategy', 'Unknown')}",
+            f"Status: {self.ai_decision_info.get('status', 'Thinking')}",
+            f"Tangga dekat: {self.ai_decision_info.get('ladders_nearby', 0)}",
+            f"Ular dekat: {self.ai_decision_info.get('snakes_nearby', 0)}"
+        ]
+        
+        for line in info_lines:
+            line_surface = font_small.render(line, True, (220, 220, 220))
+            self.screen.blit(line_surface, (555, y_offset))
+            y_offset += 18
+        
+        # Thinking animation
+        if self.current_player.is_computer and self.waiting_for_roll:
+            thinking_dots = "." * ((pygame.time.get_ticks() // 300) % 4)
+            thinking_text = f"Berpikir{thinking_dots}"
+            thinking_surface = font_small.render(thinking_text, True, (100, 255, 100))
+            self.screen.blit(thinking_surface, (555, y_offset))
 
     def draw_win_screen(self):
         """Draw victory screen"""
@@ -232,16 +325,29 @@ class Game:
         win_rect = win_surface.get_rect(center=(450, 250))
         self.screen.blit(win_surface, win_rect)
         
+        # Game mode info
+        mode_text = f"Mode: {self.get_difficulty_display()}"
+        mode_surface = pygame.font.SysFont('Arial', 24).render(mode_text, True, (200, 200, 200))
+        mode_rect = mode_surface.get_rect(center=(450, 290))
+        self.screen.blit(mode_surface, mode_rect)
+        
         # Final positions
         final_text = f"Posisi Final - {self.player1.name}: {self.player1.position}, {self.player2.name}: {self.player2.position}"
-        final_surface = pygame.font.SysFont('Arial', 24).render(final_text, True, (255, 255, 255))
-        final_rect = final_surface.get_rect(center=(450, 320))
+        final_surface = pygame.font.SysFont('Arial', 20).render(final_text, True, (255, 255, 255))
+        final_rect = final_surface.get_rect(center=(450, 330))
         self.screen.blit(final_surface, final_rect)
+        
+        # Performance stats for AI games
+        if self.player2.is_computer and hasattr(self.player2, 'difficulty'):
+            perf_text = f"Melawan AI {self.player2.difficulty.capitalize()}"
+            perf_surface = pygame.font.SysFont('Arial', 18).render(perf_text, True, (180, 180, 180))
+            perf_rect = perf_surface.get_rect(center=(450, 355))
+            self.screen.blit(perf_surface, perf_rect)
         
         # Instructions
         restart_text = "Tekan R untuk main lagi | Tekan M untuk menu utama"
         restart_surface = pygame.font.SysFont('Arial', 20).render(restart_text, True, (200, 200, 200))
-        restart_rect = restart_surface.get_rect(center=(450, 380))
+        restart_rect = restart_surface.get_rect(center=(450, 400))
         self.screen.blit(restart_surface, restart_rect)
 
     def draw_back_button(self):
@@ -296,27 +402,65 @@ class Game:
             dice_value = self.dice.get_value()
             self.move_player(dice_value)
         
-        # Handle computer player
+        # Handle computer player with enhanced AI
         if (self.current_player.is_computer and 
             self.waiting_for_roll and 
-            not self.game_over and
-            self.current_player.should_computer_roll()):
-            self.roll_and_move()
+            not self.game_over):
+            
+            # Check if it's enhanced AI
+            if hasattr(self.current_player, 'should_computer_roll_enhanced'):
+                opponent = self.get_opponent()
+                if self.current_player.should_computer_roll_enhanced(self.board, opponent.position):
+                    self.roll_and_move()
+                # Update AI decision info
+                if hasattr(self.current_player, 'get_ai_decision_info'):
+                    self.ai_decision_info = self.current_player.get_ai_decision_info(
+                        self.board, opponent.position)
+            else:
+                # Basic computer AI
+                if self.current_player.should_computer_roll():
+                    self.roll_and_move()
 
     def move_player(self, dice_value):
         """Move player and handle game logic"""
         old_position = self.current_player.position
         self.current_player.move(dice_value, self.board)
         
+        # Calculate where player would land without snakes/ladders
+        intended_position = min(old_position + dice_value, 100)
+        
         # Update message based on movement
-        if self.current_player.position != old_position + dice_value:
+        if self.current_player.position != intended_position:
             # Landed on snake or ladder
-            if self.current_player.position > old_position + dice_value:
-                self.message = f"{self.current_player.name} naik tangga! {old_position + dice_value} → {self.current_player.position}"
+            if self.current_player.position > intended_position:
+                self.message = f"{self.current_player.name} naik tangga! {intended_position} → {self.current_player.position}"
             else:
-                self.message = f"{self.current_player.name} kena ular! {old_position + dice_value} → {self.current_player.position}"
+                self.message = f"{self.current_player.name} kena ular! {intended_position} → {self.current_player.position}"
         else:
             self.message = f"{self.current_player.name} pindah ke kotak {self.current_player.position}"
+        
+        # AI commentary for enhanced AI
+        if (self.current_player.is_computer and 
+            hasattr(self.current_player, 'difficulty') and 
+            self.current_player.position != intended_position):
+            
+            if self.current_player.position > intended_position:
+                # AI got a ladder
+                comments = {
+                    "easy": " | Wah beruntung!",
+                    "medium": " | Perhitungan yang tepat",
+                    "hard": " | Sesuai strategi!"
+                }
+            else:
+                # AI hit a snake
+                comments = {
+                    "easy": " | Waduh...",
+                    "medium": " | Tidak apa-apa",
+                    "hard": " | Risiko yang diperhitungkan"
+                }
+            
+            comment = comments.get(self.current_player.difficulty, "")
+            self.message += comment
         
         # Check for win condition
         if self.current_player.position >= 100:
@@ -332,6 +476,11 @@ class Game:
             if self.current_player.is_computer:
                 self.message += " | Computer sedang berpikir..."
                 self.current_player.set_move_time()
+                # Update AI decision info for new turn
+                if hasattr(self.current_player, 'get_ai_decision_info'):
+                    opponent = self.get_opponent()
+                    self.ai_decision_info = self.current_player.get_ai_decision_info(
+                        self.board, opponent.position)
             else:
                 self.message += " | Klik dadu untuk roll"
         
@@ -350,10 +499,15 @@ class Game:
         self.winner = None
         self.dice.value = 1
         self.waiting_for_roll = True
+        self.ai_decision_info = {}
         
         if self.current_player.is_computer:
             self.message = "Computer sedang berpikir..."
             self.current_player.set_move_time()
+            if hasattr(self.current_player, 'get_ai_decision_info'):
+                opponent = self.get_opponent()
+                self.ai_decision_info = self.current_player.get_ai_decision_info(
+                    self.board, opponent.position)
         else:
             self.message = "Klik dadu untuk roll"
 
